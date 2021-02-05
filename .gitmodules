@@ -1,4 +1,4 @@
 [submodule "pilight"]
 	path = pilight
-	url = https://github.com/pilight/pilight
+	url = git@github.com:latchdevel/pilight.git
 	branch = staging
