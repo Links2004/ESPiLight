@@ -31,8 +31,8 @@
 #include "quigg_screen.h"
 
 #define	PULSE_QUIGG_SCREEN_SHORT	700
-#define	PULSE_QUIGG_SCREEN_LONG	1400
-#define	PULSE_QUIGG_SCREEN_FOOTER	81000
+#define	PULSE_QUIGG_SCREEN_LONG		1400
+#define	PULSE_QUIGG_SCREEN_FOOTER	59500 // 81000*1.1 is too mach for unit16_t
 #define	PULSE_QUIGG_SCREEN_50		PULSE_QUIGG_SCREEN_SHORT+(PULSE_QUIGG_SCREEN_LONG-PULSE_QUIGG_SCREEN_SHORT)/2
 
 #define LEARN_REPEATS 		4
@@ -45,8 +45,8 @@
 
 static int validate(void) {
 	if(quigg_screen->rawlen == RAW_LENGTH) {
-		if(quigg_screen->raw[quigg_screen->rawlen-1] >= (int)(PULSE_QUIGG_SCREEN_FOOTER*0.9) &&
-			 quigg_screen->raw[quigg_screen->rawlen-1] <= (int)(PULSE_QUIGG_SCREEN_FOOTER*1.1) &&
+		if(quigg_screen->raw[quigg_screen->rawlen-1] >= (uint16_t)(PULSE_QUIGG_SCREEN_FOOTER*0.9) &&
+			 quigg_screen->raw[quigg_screen->rawlen-1] <= (uint16_t)(PULSE_QUIGG_SCREEN_FOOTER*1.1) &&
 			 quigg_screen->raw[0] >= MIN_PULSE_LENGTH &&
 			 quigg_screen->raw[0] <= MAX_PULSE_LENGTH) {
 		return 0;

@@ -32,7 +32,7 @@
 
 #define PULSE_QUIGG_SHORT	700
 #define PULSE_QUIGG_LONG	1400
-#define PULSE_QUIGG_FOOTER	81000
+#define PULSE_QUIGG_FOOTER	59500 // 81000*1.1 is too mach for unit16_t
 #define PULSE_QUIGG_50	PULSE_QUIGG_SHORT+(PULSE_QUIGG_LONG-PULSE_QUIGG_SHORT)/2
 
 #define LEARN_REPEATS			4
@@ -45,8 +45,8 @@
 
 static int validate(void) {
 	if(quigg_gt7000->rawlen == RAW_LENGTH) {
-		if(quigg_gt7000->raw[quigg_gt7000->rawlen-1] >= (int)(PULSE_QUIGG_FOOTER*0.9) &&
-			 quigg_gt7000->raw[quigg_gt7000->rawlen-1] <= (int)(PULSE_QUIGG_FOOTER*1.1) &&
+		if(quigg_gt7000->raw[quigg_gt7000->rawlen-1] >= (uint16_t)(PULSE_QUIGG_FOOTER*0.9) &&
+			 quigg_gt7000->raw[quigg_gt7000->rawlen-1] <= (uint16_t)(PULSE_QUIGG_FOOTER*1.1) &&
 			 quigg_gt7000->raw[0] >= MIN_PULSE_LENGTH &&
 			 quigg_gt7000->raw[0] <= MAX_PULSE_LENGTH) {
 		return 0;
