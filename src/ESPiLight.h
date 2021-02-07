@@ -27,7 +27,7 @@
 #endif
 
 #ifndef MAXPULSESTREAMLENGTH
-#define MAXPULSESTREAMLENGTH 254
+#define MAXPULSESTREAMLENGTH 255
 #endif
 
 #define MAX_PULSE_TYPES 16
@@ -35,7 +35,7 @@
 enum PilightRepeatStatus_t { FIRST, INVALID, VALID, KNOWN };
 
 typedef struct PulseTrain_t {
-  uint16_t pulses[MAXPULSESTREAMLENGTH];
+  uint16_t pulses[MAXPULSESTREAMLENGTH-1];
   uint8_t length;
 } PulseTrain_t;
 
