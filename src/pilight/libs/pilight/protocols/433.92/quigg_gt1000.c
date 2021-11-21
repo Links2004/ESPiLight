@@ -49,11 +49,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
 
 #include "../../core/pilight.h"
 #include "../../core/common.h"
-#include "../../core/dso.h"
+
 #include "../../core/log.h"
 #include "../protocol.h"
 #include "../../core/binary.h"
@@ -334,7 +333,7 @@ static int createCode(JsonNode *code) { // function to create the raw code
 		state=1;
 
 	if(seq == -1) {/* no seqnr was given, a random seqnr will be used */
-		srand((unsigned int)time(NULL));	/* seed the random generator with current time */
+		srand((unsigned int)time (0));	/* seed the random generator with current time */
 		seq = rand() & ((super == 1)? NRSUPERMASK:0x03); /* use last bits of random number */
 	}
 
@@ -367,7 +366,7 @@ static int createCode(JsonNode *code) { // function to create the raw code
 		/* and now convert binary to Mark-Space combis */
 		if(fillRawCode() != RAW_LENGTH) {
 			/* this Error should never occur. It indicates a wrong raw protocol length or misaligned fill */
-			logprintf(LOG_ERR, "quigg_gt1000: raw index not correct %d %d",quigg_gt1000->rawlen,fillRawCode());
+			logprintf(LOG_ERR, "quigg_gt1000: raw index not correct %d %d",quigg_gt1000->rawlen,fillRawCode);
 			return EXIT_FAILURE;
 		}
 		quigg_gt1000->rawlen = RAW_LENGTH;

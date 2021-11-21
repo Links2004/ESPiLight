@@ -25,7 +25,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *quigg_gt1000;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *quigg_gt1000;
 void quiggGT1000Init(void);
 
 #endif

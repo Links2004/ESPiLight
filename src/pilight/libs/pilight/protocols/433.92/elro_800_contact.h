@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *elro_800_contact;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *elro_800_contact;
 void elro800ContactInit(void);
 
 #endif

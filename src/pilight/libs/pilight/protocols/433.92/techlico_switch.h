@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *techlico_switch;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *techlico_switch;
 void techlicoSwitchInit(void);
 
 #endif

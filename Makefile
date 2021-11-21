@@ -21,11 +21,12 @@ PROTOCOL_DIR = libs/pilight/protocols/433.92
 
 PROTOCOLS = $(patsubst $(SRC_DIR)/$(PROTOCOL_DIR)/%.h,%,$(sort $(wildcard $(SRC_DIR)/$(PROTOCOL_DIR)/*.h)))
 
-PILIGHT_FILES = libs/pilight/core/dso.h libs/pilight/core/mem.h	\
+PILIGHT_FILES = \
 	libs/pilight/core/json.h libs/pilight/core/json.c	\
 	libs/pilight/core/binary.h libs/pilight/core/binary.c	\
 	libs/pilight/protocols/protocol_header.h		\
-	libs/pilight/protocols/protocol_init.h
+	libs/pilight/protocols/protocol_init.h \
+	libs/pilight/protocols/protocol_fix.h
 PROTOCOL_H_FILES = $(foreach protocol,$(PROTOCOLS),$(PROTOCOL_DIR)/$(protocol).h)
 PROTOCOL_C_FILES = $(foreach protocol,$(PROTOCOLS),$(PROTOCOL_DIR)/$(protocol).c)
 FILES = $(PILIGHT_FILES) $(PROTOCOL_H_FILES) $(PROTOCOL_C_FILES)
@@ -52,13 +53,27 @@ $(DST_DIR)/libs/pilight/core/json.c: $(SRC_DIR)/libs/pilight/core/json.c
 	sed 's!#include <stdio.h>!#include <stdio.h>\n#include "../../../../tools/aprintf.h"!' -i $@
 
 $(DST_DIR)/libs/pilight/protocols/protocol_header.h:
+	echo '#ifndef PROTOCOL_HEADER_H_' > $@;\
+	echo '#define PROTOCOL_HEADER_H_' >> $@;\
+	echo '#define PROTOCOL_STRUCT_EXTERN extern' >> $@;\
 	for protocol in $(PROTOCOLS); do\
 	  echo "#include \"433.92/$${protocol}.h\""  >> $@;\
 	done
+	echo '#endif' >> $@;\
 
 $(DST_DIR)/libs/pilight/protocols/protocol_init.h: $(foreach file,$(PROTOCOL_C_FILES),$(DST_DIR)/$(file))
+	echo '#ifndef PROTOCOL_INIT_H_' > $@;\
+	echo '#define PROTOCOL_INIT_H_' >> $@;\
 	for cfile in $^; do\
 	  grep 'void .*Init(' $$cfile | sed 's/void \(.*Init\)(.*/\1();/'  >> $@;\
+	done
+	echo '#endif' >> $@
+
+$(DST_DIR)/libs/pilight/protocols/protocol_fix.h: $(foreach file,$(PROTOCOL_H_FILES),$(DST_DIR)/$(file))
+	echo '' > $@;\
+	for protocol in $(PROTOCOLS); do \
+	  sed 's/struct protocol_t /PROTOCOL_STRUCT_EXTERN struct protocol_t /g' -i "src/pilight/libs/pilight/protocols/433.92/$${protocol}.h" ; \
+	  sed 's/#include "..\/..\/core\/dso.h"//g' -i "src/pilight/libs/pilight/protocols/433.92/$${protocol}.c" ; \
 	done
 
 pilight/libs:

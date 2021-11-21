@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *ninjablocks_weather;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *ninjablocks_weather;
 void ninjablocksWeatherInit(void);
 
 #endif

@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *quigg_screen;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *quigg_screen;
 void quiggScreenInit(void);
 
 #endif

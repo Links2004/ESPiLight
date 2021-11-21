@@ -115,4 +115,8 @@ void protocol_set_id(protocol_t *proto, char *id);
 void protocol_register(protocol_t **proto);
 #define protocol_device_add(proto, id, desc)
 
+#ifndef PROTOCOL_STRUCT_EXTERN
+#define PROTOCOL_STRUCT_EXTERN
+#endif
+
 #endif

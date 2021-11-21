@@ -1,3 +1,6 @@
+#ifndef PROTOCOL_HEADER_H_
+#define PROTOCOL_HEADER_H_
+#define PROTOCOL_STRUCT_EXTERN extern
 #include "433.92/alecto_ws1700.h"
 #include "433.92/alecto_wsd17.h"
 #include "433.92/alecto_wx500.h"
@@ -23,6 +26,7 @@
 #include "433.92/elro_800_switch.h"
 #include "433.92/eurodomest_switch.h"
 #include "433.92/ev1527.h"
+#include "433.92/fanju.h"
 #include "433.92/heitech.h"
 #include "433.92/impuls.h"
 #include "433.92/iwds07.h"
@@ -50,3 +54,4 @@
 #include "433.92/tfa2017.h"
 #include "433.92/tfa30.h"
 #include "433.92/x10.h"
+#endif

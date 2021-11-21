@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *tfa;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *tfa;
 void tfaInit(void);
 
 #endif

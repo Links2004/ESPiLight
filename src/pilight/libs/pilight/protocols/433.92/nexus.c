@@ -33,7 +33,7 @@
 
 #include "../../core/binary.h"
 #include "../../core/common.h"
-#include "../../core/dso.h"
+
 #include "../../core/gc.h"
 #include "../../core/log.h"
 #include "../../core/pilight.h"

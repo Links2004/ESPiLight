@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *logilink_switch;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *logilink_switch;
 void logilinkSwitchInit(void);
 
 #endif

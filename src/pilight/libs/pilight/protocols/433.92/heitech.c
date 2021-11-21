@@ -24,7 +24,7 @@
 
 #include "../../core/pilight.h"
 #include "../../core/common.h"
-#include "../../core/dso.h"
+
 #include "../../core/log.h"
 #include "../../core/binary.h"
 #include "../../core/gc.h"

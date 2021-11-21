@@ -1,3 +1,5 @@
+#ifndef PROTOCOL_INIT_H_
+#define PROTOCOL_INIT_H_
 alectoWS1700Init();
 alectoWSD17Init();
 alectoWX500Init();
@@ -23,6 +25,7 @@ elro800ContactInit();
 elro800SwitchInit();
 eurodomestSwitchInit();
 ev1527Init();
+fanjuInit();
 heitechInit();
 impulsInit();
 iwds07Init();
@@ -50,3 +53,4 @@ tfaInit();
 tfa2017Init();
 tfa30Init();
 x10Init();
+#endif

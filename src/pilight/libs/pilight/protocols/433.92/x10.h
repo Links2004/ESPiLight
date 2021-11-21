@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *x10;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *x10;
 void x10Init(void);
 
 #endif

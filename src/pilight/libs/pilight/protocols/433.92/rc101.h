@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *rc101;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *rc101;
 void rc101Init(void);
 
 #endif

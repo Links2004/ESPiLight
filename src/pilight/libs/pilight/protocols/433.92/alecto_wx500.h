@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *alecto_wx500;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *alecto_wx500;
 void alectoWX500Init(void);
 
 #endif

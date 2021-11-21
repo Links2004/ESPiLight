@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *alecto_wsd17;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *alecto_wsd17;
 void alectoWSD17Init(void);
 
 #endif

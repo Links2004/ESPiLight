@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *secudo_smoke;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *secudo_smoke;
 void secudoSmokeInit(void);
 
 #endif

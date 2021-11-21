@@ -21,7 +21,7 @@
 
 #include "../protocol.h"
 
-struct protocol_t *sc2262;
+PROTOCOL_STRUCT_EXTERN struct protocol_t *sc2262;
 void sc2262Init(void);
 
 #endif
