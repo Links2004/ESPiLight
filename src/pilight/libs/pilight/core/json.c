@@ -1433,6 +1433,15 @@ int json_find_number(JsonNode *object, const char *name, double *out) {
 	return 1;
 }
 
+int json_find_bool(JsonNode *object, const char *name, double *out) {
+	JsonNode *node = json_find_member(object, name);
+	if (node && node->tag == JSON_BOOL) {
+		*out = node->bool_ ? 1 : 0;
+		return 0;
+	}
+	return 1;
+}
+
 int json_find_string(JsonNode *object, const char *name, char **out) {
 	JsonNode *node = json_find_member(object, name);
 	if (node && node->tag == JSON_STRING) {

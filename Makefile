@@ -43,6 +43,8 @@ copy: $(DST_FILES)
 $(DST_DIR)/%: $(SRC_DIR)/%
 	@mkdir -p $(@D)
 	cp $< $@
+	sed 's/^#include "..\/..\/core\/dso.h"//g' -i "$@"
+	sed 's/^struct protocol_t /PROTOCOL_STRUCT_EXTERN struct protocol_t /g' -i "$@"
 
 $(DST_DIR)/libs/pilight/core/json.c: $(SRC_DIR)/libs/pilight/core/json.c
 	@mkdir -p $(@D)
@@ -55,6 +57,9 @@ $(DST_DIR)/libs/pilight/core/json.c: $(SRC_DIR)/libs/pilight/core/json.c
 $(DST_DIR)/libs/pilight/protocols/protocol_header.h:
 	echo '#ifndef PROTOCOL_HEADER_H_' > $@;\
 	echo '#define PROTOCOL_HEADER_H_' >> $@;\
+	echo '#ifdef PROTOCOL_STRUCT_EXTERN' >> $@;\
+	echo '#undef PROTOCOL_STRUCT_EXTERN' >> $@;\
+	echo '#endif' >> $@;\
 	echo '#define PROTOCOL_STRUCT_EXTERN extern' >> $@;\
 	for protocol in $(PROTOCOLS); do\
 	  echo "#include \"433.92/$${protocol}.h\""  >> $@;\
@@ -72,8 +77,8 @@ $(DST_DIR)/libs/pilight/protocols/protocol_init.h: $(foreach file,$(PROTOCOL_C_F
 $(DST_DIR)/libs/pilight/protocols/protocol_fix.h: $(foreach file,$(PROTOCOL_H_FILES),$(DST_DIR)/$(file))
 	echo '' > $@;\
 	for protocol in $(PROTOCOLS); do \
-	  sed 's/struct protocol_t /PROTOCOL_STRUCT_EXTERN struct protocol_t /g' -i "src/pilight/libs/pilight/protocols/433.92/$${protocol}.h" ; \
-	  sed 's/#include "..\/..\/core\/dso.h"//g' -i "src/pilight/libs/pilight/protocols/433.92/$${protocol}.c" ; \
+	  sed 's/^struct protocol_t /PROTOCOL_STRUCT_EXTERN struct protocol_t /g' -i "src/pilight/libs/pilight/protocols/433.92/$${protocol}.h" ; \
+	  sed 's/^#include "..\/..\/core\/dso.h"//g' -i "src/pilight/libs/pilight/protocols/433.92/$${protocol}.c" ; \
 	done
 
 pilight/libs:
@@ -104,3 +109,4 @@ stylecheck:
 	  clang-format -style=google "$$file" | diff -u "$$file" - || RESULT=$$?;\
 	done;\
 	exit $$RESULT
+

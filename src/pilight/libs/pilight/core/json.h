@@ -118,6 +118,7 @@ void json_free(void *a);
  */
 bool json_check(const JsonNode *node, char errmsg[256]);
 
+int json_find_bool(JsonNode *object, const char *name, double *out);
 int json_find_number(JsonNode *object, const char *name, double *out);
 int json_find_string(JsonNode *object, const char *name, char **out);
 

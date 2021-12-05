@@ -2,3 +2,6 @@
 	path = pilight
 	url = git@github.com:Links2004/pilight.git
 	branch = staging
+[submodule "rtl_433"]
+	path = rtl_433
+	url = https://github.com/merbanan/rtl_433.git

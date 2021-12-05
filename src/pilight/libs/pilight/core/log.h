@@ -31,7 +31,11 @@
 #define LOG_STACK               255
 
 #include <stdio.h>
-
+#ifdef ESP8266
+extern int ets_uart_printf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
+#define logprintf(prio, args...) {ets_uart_printf("pilight(%d): ", prio);ets_uart_printf(args);ets_uart_printf("\n");}
+#else
 #define logprintf(prio, args...) {printf("pilight(%d): ", prio);printf(args);printf("\n");}
+#endif
 
 #endif

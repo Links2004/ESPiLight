@@ -8,7 +8,7 @@
 
 #include <ESPiLight.h>
 
-#define PULSE_DIV 34
+#define PULSE_DIV 1
 
 #define RECEIVER_PIN 4  // any intterupt able pin
 #define TRANSMITTER_PIN 13

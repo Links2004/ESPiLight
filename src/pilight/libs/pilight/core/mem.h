@@ -21,6 +21,7 @@
 	#error "Need some more porting work here"
 #endif
 
+#if !defined(ESP8266)
 void *__malloc(unsigned long, const char *, int);
 void *__realloc(void *, unsigned long, const char *, int);
 void *__calloc(unsigned long a, unsigned long b, const char *, int);
@@ -29,8 +30,9 @@ void __free(void *, const char *, int);
  * Windows already has a _strdup, libpcap uses __strdup
  */
 char *___strdup(char *, const char *, int);
+#endif
 
-#if defined(DEBUG) && !defined(__mips__) && !defined(__aarch64__)
+#if defined(DEBUG) && !defined(__mips__) && !defined(__aarch64__) && !defined(ESP8266)
 	#define MALLOC(a) __malloc(a, __FILE__, __LINE__)
 	#define REALLOC(a, b) __realloc(a, b, __FILE__, __LINE__)
 	#define CALLOC(a, b) __calloc(a, b, __FILE__, __LINE__)

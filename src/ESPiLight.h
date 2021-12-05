@@ -23,7 +23,7 @@
 #include <functional>
 
 #ifndef RECEIVER_BUFFER_SIZE
-#define RECEIVER_BUFFER_SIZE 10
+#define RECEIVER_BUFFER_SIZE 16
 #endif
 
 #ifndef MAXPULSESTREAMLENGTH
@@ -37,6 +37,7 @@ enum PilightRepeatStatus_t { FIRST, INVALID, VALID, KNOWN };
 typedef struct PulseTrain_t {
   uint16_t pulses[MAXPULSESTREAMLENGTH-1];
   uint8_t length;
+  bool ok;
 } PulseTrain_t;
 
 typedef std::function<void(const String &protocol, const String &message,
@@ -94,12 +95,6 @@ class ESPiLight {
   static uint8_t receivePulseTrain(uint16_t *pulses);
 
   /**
-   * Check if new PulseTrain avaiable.
-   * Returns: 0 if no new PulseTrain avaiable
-   */
-  static uint8_t nextPulseTrainLength();
-
-  /**
    * Enable Receiver. No need to call enableReceiver() after initReceiver().
    */
   static void enableReceiver();
@@ -142,8 +137,8 @@ class ESPiLight {
 
   static uint8_t minrawlen;
   static uint8_t maxrawlen;
-  static uint16_t mingaplen;
-  static uint16_t maxgaplen;
+  static uint32_t mingaplen;
+  static uint32_t maxgaplen;
   static uint16_t minpulselen;
   static uint16_t maxpulselen;
 
@@ -195,6 +190,7 @@ class ESPiLight {
   static volatile uint8_t _actualPulseTrain;
   static uint8_t _avaiablePulseTrain;
   static volatile unsigned long _lastChange;  // Timestamp of previous edge
+  static volatile unsigned long _lastPulse;
   static volatile uint8_t _nrpulses;
   static int16_t _interrupt;
 };

@@ -65,8 +65,8 @@ typedef struct protocol_t {
   uint8_t rawlen;
   uint8_t minrawlen;
   uint8_t maxrawlen;
-  uint16_t mingaplen;
-  uint16_t maxgaplen;
+  uint32_t mingaplen;
+  uint32_t maxgaplen;
   uint8_t txrpt;
   uint8_t rxrpt;
   //short multipleId;

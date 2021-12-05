@@ -33,24 +33,25 @@
 #endif
 
 extern "C" {
+#include "pilight/libs/pilight/core/pilight.h"
 #include "pilight/libs/pilight/protocols/protocol.h"
 }
+
 static protocols_t *used_protocols = nullptr;
 
 volatile PulseTrain_t ESPiLight::_pulseTrains[RECEIVER_BUFFER_SIZE];
 bool ESPiLight::_enabledReceiver;
 volatile uint8_t ESPiLight::_actualPulseTrain = 0;
-uint8_t ESPiLight::_avaiablePulseTrain = 0;
-volatile unsigned long ESPiLight::_lastChange =
-    0;  // Timestamp of previous edge
+volatile unsigned long ESPiLight::_lastChange = 0;  // Timestamp of previous edge
+volatile unsigned long ESPiLight::_lastPulse = 0;  // Timestamp of last pulse
 volatile uint8_t ESPiLight::_nrpulses = 0;
 int16_t ESPiLight::_interrupt = NOT_AN_INTERRUPT;
 
 uint8_t ESPiLight::minrawlen = std::numeric_limits<uint8_t>::max();
 uint8_t ESPiLight::maxrawlen = std::numeric_limits<uint8_t>::min();
-uint16_t ESPiLight::mingaplen = std::numeric_limits<uint16_t>::max();
-uint16_t ESPiLight::maxgaplen = std::numeric_limits<uint16_t>::min();
-uint16_t ESPiLight::minpulselen = 80;
+uint32_t ESPiLight::mingaplen = std::numeric_limits<uint16_t>::max();
+uint32_t ESPiLight::maxgaplen = std::numeric_limits<uint16_t>::min();
+uint16_t ESPiLight::minpulselen = 300;
 uint16_t ESPiLight::maxpulselen = 16000;
 
 static void fire_callback(protocol_t *protocol, ESPiLightCallBack callback);
@@ -135,16 +136,16 @@ static void calc_lengths() {
   ESPiLight::maxrawlen = std::numeric_limits<uint8_t>::min();
   ESPiLight::mingaplen = std::numeric_limits<uint16_t>::max();
   ESPiLight::maxgaplen = std::numeric_limits<uint16_t>::min();
-  ESPiLight::minpulselen = 80;
-  ESPiLight::maxpulselen = 16000;
+  ESPiLight::minpulselen = std::numeric_limits<uint16_t>::max();
+  ESPiLight::maxpulselen = std::numeric_limits<uint16_t>::min();
+
   while (pnode != nullptr) {
     if (pnode->listener->parseCode != nullptr) {
       const protocol_t *protocol = pnode->listener;
       const uint8_t minLen = protocol->minrawlen;
       const uint8_t maxLen = protocol->maxrawlen;
-      const uint16_t minGap = protocol->mingaplen;
-      const uint16_t maxGap = protocol->maxgaplen;
-
+      const uint32_t minGap = protocol->mingaplen;
+      const uint32_t maxGap = protocol->maxgaplen;
       if (minLen < ESPiLight::minrawlen) {
         ESPiLight::minrawlen = minLen;
       }
@@ -161,16 +162,22 @@ static void calc_lengths() {
         ESPiLight::maxgaplen = maxGap;
       }
 
-      if (minGap < ESPiLight::minpulselen) {
-        ESPiLight::minpulselen = minGap;
+      if (minGap/PULSE_DIV < ESPiLight::minpulselen) {
+        ESPiLight::minpulselen = minGap/PULSE_DIV;
       }
 
-      if (maxGap > ESPiLight::maxpulselen) {
-        ESPiLight::maxpulselen = maxGap;
+      if (maxGap/PULSE_DIV > ESPiLight::maxpulselen) {
+        ESPiLight::maxpulselen = maxGap/PULSE_DIV;
       }
+
     }
     pnode = pnode->next;
   }
+
+  if (ESPiLight::maxpulselen > ESPiLight::mingaplen) {
+    ESPiLight::mingaplen = ESPiLight::maxpulselen + 100;
+  }
+
   Debug("minrawlen: ");
   DebugLn(ESPiLight::minrawlen);
   Debug("maxrawlen: ");
@@ -203,23 +210,25 @@ void ESPiLight::initReceiver(byte inputPin) {
   }
 }
 
-uint8_t ESPiLight::receivePulseTrain(uint16_t *pulses) {
-  uint8_t length = nextPulseTrainLength();
-
-  if (length > 0) {
-    volatile PulseTrain_t &pulseTrain = _pulseTrains[_avaiablePulseTrain];
-    _avaiablePulseTrain = (_avaiablePulseTrain + 1) % RECEIVER_BUFFER_SIZE;
-    for (uint8_t i = 0; i < length; i++) {
-      pulses[i] = pulseTrain.pulses[i];
+uint8_t ESPiLight::receivePulseTrain(uint16_t * pulses) {
+    for(uint8_t t = 0; t < RECEIVER_BUFFER_SIZE; t++) {
+        volatile PulseTrain_t & pulseTrain = _pulseTrains[t];
+        const uint16_t length              = pulseTrain.length;
+        if(length > 0) {
+            for(uint8_t i = 0; i < length; i++) {
+                pulses[i] = pulseTrain.pulses[i];
+            }
+            pulseTrain.length = 0;
+            return length;
+        }
     }
-    pulseTrain.length = 0;
-  }
-  return length;
+    return 0;
 }
 
-uint8_t ESPiLight::nextPulseTrainLength() {
-  return _pulseTrains[_avaiablePulseTrain].length;
-}
+#ifdef SHOW_IRQ_RAW
+volatile unsigned long _lastDuration = 0;
+unsigned long _lastDurationPrint = 0;
+#endif
 
 void ICACHE_RAM_ATTR ESPiLight::interruptHandler() {
   if (!_enabledReceiver) {
@@ -231,10 +240,33 @@ void ICACHE_RAM_ATTR ESPiLight::interruptHandler() {
 
   if (pulseTrain.length == 0) {
     const unsigned long now = micros();
-    const unsigned int duration = now - _lastChange;
+    const unsigned int duration = now - _lastPulse;
+    const unsigned int durationChange = now - _lastChange;
+
+    // filter 0 gabage
+    if (durationChange >= minpulselen) {
+      pulseTrain.ok = true;
+    }
+
+    // detect end
+    if(duration >= mingaplen) {
+      if (_nrpulses >= minrawlen && _nrpulses <= maxrawlen) {
+            pulseTrain.length = _nrpulses;
+            pulseTrain.ok = false;
+            _actualPulseTrain = (_actualPulseTrain + 1) % RECEIVER_BUFFER_SIZE;
+        }
+        _nrpulses = 0;
+        _lastPulse = now;
+        return;
+    }
+
+    _lastChange = now;
 
     /* We first do some filtering (same as pilight BPF) */
-    if (duration > minpulselen) {
+    if (duration > minpulselen && pulseTrain.ok) {
+#ifdef SHOW_IRQ_RAW
+      _lastDuration = duration;
+#endif
       if (duration < maxpulselen) {
         /* All codes are buffered */
         codes[_nrpulses] = (uint16_t)duration;
@@ -247,14 +279,16 @@ void ICACHE_RAM_ATTR ESPiLight::interruptHandler() {
             // Debug(_nrpulses);
             // Debug('l');
             pulseTrain.length = _nrpulses;
+            pulseTrain.ok = false;
             _actualPulseTrain = (_actualPulseTrain + 1) % RECEIVER_BUFFER_SIZE;
           }
           _nrpulses = 0;
         }
       }
-      _lastChange = now;
+      _lastPulse = now;
     }
   } else {
+    // buffer full
     Debug("_!_");
   }
 }
@@ -262,8 +296,8 @@ void ICACHE_RAM_ATTR ESPiLight::interruptHandler() {
 void ESPiLight::resetReceiver() {
   for (unsigned int i = 0; i < RECEIVER_BUFFER_SIZE; i++) {
     _pulseTrains[i].length = 0;
+    _pulseTrains[i].ok = false;
   }
-  _avaiablePulseTrain = 0;
   _actualPulseTrain = 0;
   _nrpulses = 0;
 }
@@ -272,14 +306,22 @@ void ESPiLight::enableReceiver() { _enabledReceiver = true; }
 
 void ESPiLight::disableReceiver() { _enabledReceiver = false; }
 
+
+
 void ESPiLight::loop() {
   int length = 0;
   uint16_t pulses[MAXPULSESTREAMLENGTH];
+#ifdef SHOW_IRQ_RAW
+  if(_lastDurationPrint != _lastDuration) {
+    DebugLn(_lastDuration);
+    _lastDurationPrint = _lastDuration;
+  }
+#endif
 
   length = receivePulseTrain(pulses);
 
   if (length > 0) {
-    /*
+/*
     Debug("RAW (");
     Debug(length);
     Debug("): ");
@@ -288,7 +330,7 @@ void ESPiLight::loop() {
       Debug(' ');
     }
     DebugLn();
-    */
+*/
     parsePulseTrain(pulses, (uint8_t)length);
   }
 }
@@ -399,7 +441,7 @@ size_t ESPiLight::parsePulseTrain(uint16_t *pulses, uint8_t length) {
         }
 
         /* Reset # of repeats after a certain delay */
-        if ((protocol->second - protocol->first) > 500000) {
+        if ((protocol->second - protocol->first) > 1500000) {
           protocol->repeats = 0;
         }
 
@@ -434,23 +476,12 @@ static void fire_callback(protocol_t *protocol, ESPiLightCallBack callback) {
   double itmp;
   char *stmp;
 
-  if ((protocol->repeats <= 1) || (protocol->old_content == nullptr)) {
-    status = FIRST;
+
+  if((protocol->old_content != nullptr)) {
     json_free(protocol->old_content);
-    protocol->old_content = content;
-  } else if (!(protocol->repeats & 0x80)) {
-    if (strcmp(content, protocol->old_content) == 0) {
-      protocol->repeats |= 0x80;
-      status = VALID;
-    } else {
-      status = INVALID;
-    }
-    json_free(protocol->old_content);
-    protocol->old_content = content;
-  } else {
-    status = KNOWN;
-    json_free(content);
   }
+  protocol->old_content = content;
+
   if (json_find_number(protocol->message, "id", &itmp) == 0) {
     deviceId = String((int)round(itmp));
   } else if (json_find_string(protocol->message, "id", &stmp) == 0) {
